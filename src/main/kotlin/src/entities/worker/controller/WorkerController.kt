@@ -6,11 +6,17 @@ import io.swagger.annotations.ApiResponse
 import io.swagger.annotations.ApiResponses
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import src.entities.worker.request.NewWorkerRequest
+import src.entities.worker.response.DetailWorkerResponse
+import src.entities.worker.usecase.GetWorkerUseCase
 import src.entities.worker.usecase.NewWorkerUseCase
 import javax.validation.Valid
 
@@ -20,7 +26,11 @@ import javax.validation.Valid
 class WorkerController(
 
     @Autowired
-    private val newWorkerService: NewWorkerUseCase
+    private val newWorkerService: NewWorkerUseCase,
+
+
+    @Autowired
+    private val getWorkerService: GetWorkerUseCase
 
 ) {
 
@@ -47,6 +57,54 @@ class WorkerController(
         val uri = uriBuilder.path("/v1/workers/{workerId}").buildAndExpand(worker.id).toUri()
 
         return ResponseEntity.created(uri).build()
+    }
+
+    @ApiOperation("Get Worker by ID")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 200, message = "Worker found successfully"),
+            ApiResponse(code = 404, message = "Worker Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{workerId}")
+    fun getWorkerById(
+        @PathVariable workerId: Long,
+    ): ResponseEntity<DetailWorkerResponse> {
+        log.info("Receiving request for found worker, id: $workerId")
+
+        val workerResponse = DetailWorkerResponse(getWorkerService.getWorkerById(workerId))
+
+        return ResponseEntity.ok(workerResponse)
+    }
+
+    @ApiOperation("Get All Workers by Department")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 200, message = "Workers found successfully"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping()
+    fun getAllWorkersByDepartment(
+        @RequestParam(required = false, defaultValue = true.toString()) active: Boolean,
+        @PageableDefault(
+            page = 0,
+            size = 10,
+            sort = ["id"],
+            direction = Sort.Direction.ASC
+        ) pageable: Pageable
+    ): ResponseEntity<Page<DetailWorkerResponse>> {
+        log.info("Receiving request for get all workers")
+
+        val workersPage = getWorkerService.getAllWorkers(active, pageable)
+            .map { worker ->
+                DetailWorkerResponse(worker)
+            }
+
+        return ResponseEntity.ok(workersPage)
     }
 
 }
