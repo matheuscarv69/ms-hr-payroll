@@ -15,9 +15,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import src.entities.worker.request.NewWorkerRequest
+import src.entities.worker.request.UpdateWorkerRequest
 import src.entities.worker.response.DetailWorkerResponse
 import src.entities.worker.usecase.GetWorkerUseCase
 import src.entities.worker.usecase.NewWorkerUseCase
+import src.entities.worker.usecase.UpdateWorkerUseCase
 import javax.validation.Valid
 
 @Api(tags = ["Worker"])
@@ -28,6 +30,8 @@ class WorkerController(
     @Autowired
     private val newWorkerService: NewWorkerUseCase,
 
+    @Autowired
+    private val updateWorkerService: UpdateWorkerUseCase,
 
     @Autowired
     private val getWorkerService: GetWorkerUseCase
@@ -57,6 +61,28 @@ class WorkerController(
         val uri = uriBuilder.path("/v1/workers/{workerId}").buildAndExpand(worker.id).toUri()
 
         return ResponseEntity.created(uri).build()
+    }
+
+    @ApiOperation("Update Worker")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 204, message = "Worker Updated successfully"),
+            ApiResponse(code = 400, message = "Poorly Formatted Request"),
+            ApiResponse(code = 404, message = "Worker Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{workerId}")
+    fun updateUser(
+        @PathVariable workerId: Long,
+        @RequestBody @Valid request: UpdateWorkerRequest,
+    ): ResponseEntity<Void> {
+        log.info("Receiving request for update worker: $workerId")
+
+        updateWorkerService.updateWorker(request.toModel(workerId))
+
+        return ResponseEntity.noContent().build()
     }
 
     @ApiOperation("Get Worker by ID")
@@ -105,6 +131,46 @@ class WorkerController(
             }
 
         return ResponseEntity.ok(workersPage)
+    }
+
+    @ApiOperation("Enable Worker")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 204, message = "Worker Enable successfully"),
+            ApiResponse(code = 404, message = "Worker Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{workerId}/enable")
+    fun enableWorker(
+        @PathVariable workerId: Long,
+    ): ResponseEntity<Void> {
+        log.info("Receiving request for enable worker, ID: $workerId")
+
+        updateWorkerService.enableWorker(workerId)
+
+        return ResponseEntity.noContent().build()
+    }
+
+    @ApiOperation("Disable Worker")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 204, message = "Worker Disable successfully"),
+            ApiResponse(code = 404, message = "Worker Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{workerId}/disable")
+    fun disableWorker(
+        @PathVariable workerId: Long,
+    ): ResponseEntity<Void> {
+        log.info("Receiving request for disable worker, ID: $workerId")
+
+        updateWorkerService.disableWorker(workerId)
+
+        return ResponseEntity.noContent().build()
     }
 
 }
