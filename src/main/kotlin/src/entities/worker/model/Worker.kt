@@ -17,7 +17,7 @@ class Worker(
     @field:NotNull
     @field:Min(0)
     @Column(name = "daily_income", nullable = false)
-    val dailyIncome: BigDecimal,
+    var dailyIncome: BigDecimal,
 
 ) {
 
