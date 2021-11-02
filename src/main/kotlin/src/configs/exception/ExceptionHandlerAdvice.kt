@@ -64,7 +64,7 @@ class ExceptionHandlerAdvice(private val messageSource: MessageSource) {
      * return HttpStatus 404 - NOT FOUND
      * */
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
-    @ExceptionHandler(UserNotFoundException::class)
+    @ExceptionHandler(WorkerNotFoundException::class)
     fun handleUserNotFoundExceptionException(
         exception: Exception,
         request: HttpServletRequest
