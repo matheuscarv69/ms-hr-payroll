@@ -13,7 +13,7 @@ class Payment(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?,
+    val id: Long? = null,
 
     @field:NotNull
     @field:Min(0)
@@ -37,7 +37,7 @@ class Payment(
     fun getTotal(): BigDecimal {
         val workedDays = BigDecimal(this.workedDays)
 
-        return this.dailyIncome.multiply(workedDays)
+        return this.dailyIncome.multiply(workedDays).setScale(2)
     }
 
 }
