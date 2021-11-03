@@ -91,13 +91,30 @@ class ExceptionHandlerAdvice(private val messageSource: MessageSource) {
     }
 
     /**
-     * Handle for User Not Found
+     * Handle for Worker Not Found
      * return HttpStatus 404 - NOT FOUND
      * */
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
     @ExceptionHandler(WorkerNotFoundException::class)
-    fun handleUserNotFoundExceptionException(
-        exception: Exception,
+    fun handleWorkerNotFoundException(
+        exception: WorkerNotFoundException,
+        request: HttpServletRequest
+    ) = ExceptionResponse(
+        status = HttpStatus.NOT_FOUND.value(),
+        error = HttpStatus.NOT_FOUND.name,
+        field = "",
+        message = exception.message!!,
+        path = request.servletPath
+    )
+
+    /**
+     * Handle for Payment Not Found
+     * return HttpStatus 404 - NOT FOUND
+     * */
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PaymentNotFoundException::class)
+    fun handlePaymentNotFoundException(
+        exception: PaymentNotFoundException,
         request: HttpServletRequest
     ) = ExceptionResponse(
         status = HttpStatus.NOT_FOUND.value(),
