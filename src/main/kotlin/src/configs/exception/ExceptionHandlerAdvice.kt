@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
+import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
 class ExceptionHandlerAdvice(private val messageSource: MessageSource) {
@@ -49,6 +50,36 @@ class ExceptionHandlerAdvice(private val messageSource: MessageSource) {
 
             fieldsErrorMap.put(fieldError.field, message)
         }
+
+        return ExceptionValidationResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.name,
+            fields = fieldsErrorMap,
+            message = "Validation Error",
+            path = request.servletPath
+        )
+    }
+
+    /**
+     * Handle for validations errors in Request Param by Check Payment
+     * return HttpStatus 400 - BAD REQUEST
+     * */
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleValidationException(
+        exception: ConstraintViolationException,
+        request: HttpServletRequest
+    ): ExceptionValidationResponse {
+
+        val fieldsErrorMap = HashMap<String, String>()
+
+        exception.constraintViolations.map { violations ->
+            violations.propertyPath.map { prop ->
+                fieldsErrorMap.put(prop.name, violations.message)
+            }
+        }
+
+        fieldsErrorMap.remove("getWorkerById")
 
         return ExceptionValidationResponse(
             status = HttpStatus.BAD_REQUEST.value(),
