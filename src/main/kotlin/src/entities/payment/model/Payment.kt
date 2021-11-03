@@ -3,6 +3,7 @@ package src.entities.payment.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import src.entities.worker.model.Worker
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.Min

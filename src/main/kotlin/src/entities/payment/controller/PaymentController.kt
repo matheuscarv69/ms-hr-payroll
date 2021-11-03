@@ -8,14 +8,20 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import src.entities.payment.request.NewPaymentRequest
+import src.entities.payment.response.DetailCheckingPaymentResponse
+import src.entities.payment.usecase.GetPaymentUseCase
 import src.entities.payment.usecase.NewPaymentUseCase
 import src.entities.worker.usecase.GetWorkerUseCase
 import javax.validation.Valid
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
 
 @Api(tags = ["Payment"])
+@Validated
 @RestController
 @RequestMapping("/v1/payments")
 class PaymentController(
@@ -24,12 +30,14 @@ class PaymentController(
     private val getWorkerService: GetWorkerUseCase,
 
     @Autowired
-    private val newPaymentService: NewPaymentUseCase
+    private val newPaymentService: NewPaymentUseCase,
+
+    @Autowired
+    private val getPaymentService: GetPaymentUseCase
 
 ) {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
-
 
     @ApiOperation("Make the Payment")
     @ApiResponses(
@@ -58,6 +66,36 @@ class PaymentController(
             .toUri()
 
         return ResponseEntity.created(uri).build()
+    }
+
+    @ApiOperation("Check if Worker has Already been Paid")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 200, message = "Worker has Already been Paid"),
+            ApiResponse(code = 400, message = "Poorly Formatted Request"),
+            ApiResponse(code = 404, message = "Worker Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/workers/{workerId}")
+    fun checkPaymentByWorker(
+        @PathVariable workerId: Long,
+        @RequestParam @Min(1) @Max(12) month: Int,
+        @RequestParam @Min(2000) year: Int
+    ): ResponseEntity<DetailCheckingPaymentResponse> {
+        log.info("Receiving request for checking payment by worker id: $workerId")
+
+        val workerIsPaid = getPaymentService.checkPaymentByWorker(workerId, month, year)
+
+        return ResponseEntity.ok(
+            DetailCheckingPaymentResponse(
+                workerId = workerId,
+                paid = workerIsPaid,
+                month = month,
+                year = year
+            )
+        )
     }
 
 }
