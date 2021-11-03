@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import src.entities.payment.request.NewPaymentRequest
 import src.entities.payment.response.DetailCheckingPaymentResponse
+import src.entities.payment.response.DetailPaymentResponse
+import src.entities.payment.usecase.DeletePaymentUseCase
 import src.entities.payment.usecase.GetPaymentUseCase
 import src.entities.payment.usecase.NewPaymentUseCase
+import src.entities.worker.response.DetailWorkerResponse
 import src.entities.worker.usecase.GetWorkerUseCase
 import javax.validation.Valid
 import javax.validation.constraints.Max
@@ -33,7 +36,10 @@ class PaymentController(
     private val newPaymentService: NewPaymentUseCase,
 
     @Autowired
-    private val getPaymentService: GetPaymentUseCase
+    private val getPaymentService: GetPaymentUseCase,
+
+    @Autowired
+    private val deletePaymentService: DeletePaymentUseCase
 
 ) {
 
@@ -96,6 +102,48 @@ class PaymentController(
                 year = year
             )
         )
+    }
+
+    @ApiOperation("Get Payment by ID")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 200, message = "Payment found successfully"),
+            ApiResponse(code = 404, message = "Payment Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{paymentId}")
+    fun getPaymentById(
+        @PathVariable paymentId: Long,
+    ): ResponseEntity<DetailPaymentResponse> {
+        log.info("Receiving request for found Payment, id: $paymentId")
+
+        val paymentResponse = DetailPaymentResponse(getPaymentService.getPaymentById(paymentId))
+
+        return ResponseEntity.ok(paymentResponse)
+    }
+
+    @ApiOperation("Delete Payment")
+    @ApiResponses(
+        value = [
+            ApiResponse(code = 204, message = "Payment successfully deleted"),
+            ApiResponse(code = 404, message = "Payment Not Found"),
+            ApiResponse(code = 500, message = "Internal Server Error")
+        ]
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @DeleteMapping("/{paymentId}")
+    fun deletePaymentById(
+        @PathVariable paymentId: Long,
+    ): ResponseEntity<Void> {
+        log.info("Receiving request for delete payment id: $paymentId")
+
+        val paymentDomain = getPaymentService.getPaymentById(paymentId)
+
+        deletePaymentService.deletePaymentById(paymentDomain)
+
+        return ResponseEntity.noContent().build()
     }
 
 }
