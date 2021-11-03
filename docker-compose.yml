@@ -2,22 +2,22 @@ version: '3'
 
 services:
 
-  # hr-user
-  #  api-hr-payroll:
-  #    build:
-  #      dockerfile: Dockerfile
-  #      context: .
-  #    container_name: api-hr-payroll
-  #    environment:
-  #      SERVER_PORT: 9020
-  #      POSTGRES_HOST: postgres_hr-payroll:5450
-  #      DB_USER: postgres
-  #      DB_PASSWORD: password
-  #      DB_SCHEMA: hr_payroll
-  #    ports:
-  #      - "9020:9020"
-  #    depends_on:
-  #      - postgres_hr-payroll
+  # hr-payroll
+  api-hr-payroll:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: api-hr-payroll
+    environment:
+      SERVER_PORT: 9020
+      POSTGRES_HOST: postgres_hr-payroll:5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_SCHEMA: hr_payroll
+    ports:
+      - "9020:9020"
+    depends_on:
+      - postgres_hr-payroll
 
   # database
   postgres_hr-payroll:
